@@ -9,7 +9,7 @@ int		main()
 	char	*result;
 	int		len;
 
-	if (strchr(test, '\n') != NULL)
+	/*if (strchr(test, '\n') != NULL)
 		len = strchr(test, '\n') - test;
 	else 
 		len = strlen(test);
@@ -18,6 +18,12 @@ int		main()
 	result = (char *)malloc(sizeof(char) * (strlen(dest) + len + 1));
 	strncat(strcpy(result, dest), test, len);
 	dest = result;
+	printf("%s\n", dest);
+	dest = "a";
+	test = "bcdefghij";*/
+
+	dest = (char *)malloc(sizeof(char) * (strlen(dest) + strlen(test) + 1));
+	strcat(dest, test);
 	printf("%s\n", dest);
 	return (0);
 }

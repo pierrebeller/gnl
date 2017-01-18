@@ -1,50 +1,86 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: pbeller <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2017/01/18 10:49:17 by pbeller           #+#    #+#             */
+/*   Updated: 2017/01/18 10:49:34 by pbeller          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
 #include "gnl.h"
+#include "../projets/libft/libft.h"
 
 
-char	*fill_buff(int fd)
+int		fill_buffer(int fd, char **stock, char **line)
 {
-	char	buff[BUFF_SIZE];
 	int		ret;
+	int		len;
+	char	buff[BUFF_SIZE + 1];
+	char	*temp;
 
-	while ((ret = read(fd, buff, BUFF_SIZE - 1)))
+	temp = *line;
+	while ((ret = read(fd, buff, BUFF_SIZE)) > 0)
+	{
 		buff[ret] = 0;
-	return (strdup(buff));
+		if (ft_strchr(buff, '\n') == NULL)
+			temp = ft_strjoin(temp, buff);
+		else if (ft_strchr(buff, '\n'))
+		{
+			len =ft_strchr(buff, '\n') - buff;
+			temp = ft_strjoin(temp, ft_strsub(buff, 0, len));
+			stock[fd] = ft_strsub(buff, len + 1, ft_strlen(buff) - len - 1);
+			*line = temp;
+			return (ret);
+		}
+	}
+	return(0);
 }
 
-char	*fill_line(char *line, int fd, char *buff, char **array)
+
+int		get_next_line(int fd, char **line)
 {
-	char *result;
-	int len;
-
-	if (strchr(buff, '\n') != NULL)
-		len = strchr(buff, '\n') - buff;
-	else 
-		len = strlen(buff);
-
-	result = (char *)malloc(sizeof(char) * (strlen(line) + len + 1));
-	strncat(strcpy(result, line), buff, len);
-	line = result;
-	printf("%s\n", line);
-	printf("%s\n", array[fd]);
-	return (line);
-}
-
-int		get_next_line(const int fd, char **line)
-{
-	static 	char	*array[255];
-			char	buff[BUFF_SIZE];
-
-	strncpy(buff, array[fd], BUFF_SIZE);
-	printf("%s\n", buff);
-	//if (buff == 0)
-		//buff = fill_buff(fd);
-	printf("%s\n", *line);
-	printf("%d\n", fd);
-	printf("%s\n", *array);
-	printf("%s\n", buff);
-	//if (buff != 0)
-		//fill_line(*line, fd, buff, &array[fd]);
-	//if (buff == '\n')
-		//array[fd] = stock(buff, fd)
+	char	*stock[255];
+	int		ret;
+	
+	*line = ft_strnew(BUFF_SIZE + 1);
+	if (fd < 0)
+		return (-1);
+	if (stock[fd] == 0)
+	{
+		ret = fill_buffer(fd, stock, line);
+		return (ret);
+	}
+	else if (stock[fd])
+	{
+		ft_strcpy(*line, stock[fd]);
+		printf("Stock: %s\n", stock[fd]);
+		ret = fill_buffer(fd, stock, line);
+		return (ret);
+	}
 	return (0);
 }
+
+int		main(int ac, char **av)
+{
+	char *line;
+	int fd;
+
+	fd = open(av[1], O_RDONLY);
+	if (fd == -1)
+		return (1);
+	while (get_next_line(fd, &line))
+	{
+		printf("line: %s\n", line);
+		free(line);
+	}
+	return (0);
+}
+

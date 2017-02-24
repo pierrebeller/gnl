@@ -19,12 +19,12 @@
 # include <fcntl.h>
 # include <string.h>
 
-# define BUFF_SIZE 8
+# define BUFF_SIZE 256
+# define MAX_FD 4096
 
-int		fill_buff(int fd, char **stock, char **line);
-char	*fill_line(char **line, int fd, char **array);
+int		ft_fill_buff(int fd, char **stock, char **line);
 int		get_next_line(const int fd, char **line);
-char	*fill_stock(int fd, char *temp, char **stock);
-int		stock_gestion(int fd, char **stock, char **line);
+int		ft_stock_gestion(int fd, char **stock, char **line);
+int		ft_end(char **line, char *buff);
 
 #endif

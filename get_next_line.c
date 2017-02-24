@@ -10,98 +10,76 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
 #include "get_next_line.h"
 #include "libft/libft.h"
 
-int	stock_gestion(int fd, char **stock, char **line)
+int		ft_end(char **line, char *buff)
 {
-	char	*temp;
+	*line = ft_strjoinfree(*line, buff, 'l');
+	return (1);
+}
+
+int	ft_stock_gestion(int fd, char **stock, char **line)
+{
 	int		len;
 
-	temp = *line;
-	if (!ft_strchr(stock[fd], '\n'))
+	*line = ft_strdup("");
+	if (ft_strchr(stock[fd], '\n') == NULL)
 	{
-		*line = ft_strjoin(*line, stock[fd]);
-		return (fill_buff(fd, stock, line));
+		*line = ft_strjoinfree(*line, stock[fd], 'a');
+		return (ft_fill_buff(fd, stock, line));
 	}
 	else
 	{
 		len = ft_strchr(stock[fd], '\n') - stock[fd];
-		temp = ft_strjoin(temp, ft_strsub(stock[fd], 0, len));
+		*line = ft_strjoinfree(*line, ft_strsub(stock[fd], 0, len), 'a');
 		stock[fd] = ft_strsub(stock[fd], len + 1,\
 		ft_strlen(stock[fd]) - len - 1);
-		*line = temp;
 		return (1);
 	}
 }
 
-int	fill_buff(int fd, char **stock, char **line)
+int	ft_fill_buff(int fd, char **stock, char **line)
 {
 	int		ret;
 	int		len;
 	char	buff[BUFF_SIZE + 1];
-	char	*temp;
 
-	temp = *line;
 	while ((ret = read(fd, buff, BUFF_SIZE)) > 0)
 	{
 		if (ret < 0)
 			return (-1);
 		buff[ret] = 0;
-		if (!ft_strchr(buff, '\n') && !*buff)
-			return (0);
 		if (ft_strchr(buff, '\n') == NULL)
-			temp = ft_strjoin(temp, buff);
+			*line = ft_strjoinfree(*line, buff, 'l');
 		else if (ft_strchr(buff, '\n'))
 		{
 			len = ft_strchr(buff, '\n') - buff;
-			temp = ft_strjoin(temp, ft_strsub(buff, 0, len));
+			*line = ft_strjoinfree(*line, ft_strsub(buff, 0, len), 'b');
 			stock[fd] = ft_strsub(buff, len + 1, ft_strlen(buff) - len - 1);
-			*line = temp;
 			return (1);
 		}
 	}
-	return (ret > 0 ? ret : ft_strlen(stock[fd]));
+	return (ret);
 }
 
 int	get_next_line(int fd, char **line)
 {
-	static	char	*stock[255];
+	static	char	*stock[MAX_FD];
 	int				ret;
 
-	*line = ft_strnew(BUFF_SIZE + 1);
 	if (fd < 0 || !line)
 		return (-1);
 	if (!stock[fd])
 	{
-		ret = fill_buff(fd, stock, line);
-		return (ret > 0 ? ret : ft_strlen(stock[fd]));
+		*line = ft_strdup("");
+		ret = ft_fill_buff(fd, stock, line);
+		return (ret != 0 ? ret : 0);
 	}
 	else
 	{
-		ret = stock_gestion(fd, stock, line);
-		return (ret > 0 ? ret : ft_strlen(stock[fd]));
+		ret = ft_stock_gestion(fd, stock, line);
+		return (ret != 0 ? ret : 0);
 	}
-	return (ret > 0 ? ret : ft_strlen(stock[fd]));
+	return (ret);
 }
-
-/*int	main(int ac, char **av)
-{
-	char	*line;
-	int		fd;
-
-	fd = open(av[1], O_RDONLY);
-	if (fd == -1)
-		return (1);
-	while (get_next_line(fd, &line))
-	{
-		printf("line: %s\n", line);
-		free(line);
-	}
-	return (0);
-}*/
